@@ -3,9 +3,11 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.13.35931.197 d17.13
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkMapViewer", "ArkMapViewer\ArkMapViewer\ArkMapViewer.csproj", "{4C288E31-F856-4891-8F9E-B2F34ACFC63C}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SavegameToolkit", "ArkSavegameToolkit\SavegameToolkit\SavegameToolkit.csproj", "{F6D5EDED-C2D9-F86C-74DA-58C762DBA0E0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkMapViewer.Client", "ArkMapViewer\ArkMapViewer.Client\ArkMapViewer.Client.csproj", "{DF088E15-952E-43B5-BEC3-D9285FA87818}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SavegameToolkitAdditions", "ArkSavegameToolkit\SavegameToolkitAdditions\SavegameToolkitAdditions.csproj", "{E53DE909-9150-F720-A034-6982CA7E3085}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ArkMapViewer", "ArkMapViewer\ArkMapViewer.csproj", "{C7F03602-DF49-45A7-A0AC-3D24B4168209}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,14 +15,18 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{4C288E31-F856-4891-8F9E-B2F34ACFC63C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{4C288E31-F856-4891-8F9E-B2F34ACFC63C}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{4C288E31-F856-4891-8F9E-B2F34ACFC63C}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{4C288E31-F856-4891-8F9E-B2F34ACFC63C}.Release|Any CPU.Build.0 = Release|Any CPU
-		{DF088E15-952E-43B5-BEC3-D9285FA87818}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{DF088E15-952E-43B5-BEC3-D9285FA87818}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{DF088E15-952E-43B5-BEC3-D9285FA87818}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{DF088E15-952E-43B5-BEC3-D9285FA87818}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F6D5EDED-C2D9-F86C-74DA-58C762DBA0E0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F6D5EDED-C2D9-F86C-74DA-58C762DBA0E0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F6D5EDED-C2D9-F86C-74DA-58C762DBA0E0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F6D5EDED-C2D9-F86C-74DA-58C762DBA0E0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E53DE909-9150-F720-A034-6982CA7E3085}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E53DE909-9150-F720-A034-6982CA7E3085}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E53DE909-9150-F720-A034-6982CA7E3085}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E53DE909-9150-F720-A034-6982CA7E3085}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C7F03602-DF49-45A7-A0AC-3D24B4168209}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C7F03602-DF49-45A7-A0AC-3D24B4168209}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C7F03602-DF49-45A7-A0AC-3D24B4168209}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C7F03602-DF49-45A7-A0AC-3D24B4168209}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

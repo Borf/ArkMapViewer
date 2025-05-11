@@ -1,0 +1,216 @@
+﻿@page "/"
+@using SavegameToolkit
+@using SavegameToolkitAdditions
+@inject IConfiguration Configuration
+@inject MapCalibrations MapCalibrations
+@inject ArkDataCollection ArkData
+
+<PageTitle>Ark Map</PageTitle>
+<div>
+    <nav class="navbar navbar-expand-lg bg-body-tertiary fixed-top">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="#">Ark Map</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                <ul class="navbar-nav me-auto mb-2 mb-lg-0">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Materials
+                        </a>
+                        <ul class="dropdown-menu">
+                            <li><a class="dropdown-item" href="#">Action</a></li>
+                            <li><a class="dropdown-item" href="#">Another action</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li><a class="dropdown-item" href="#">Something else here</a></li>
+                        </ul>
+                    </li>
+
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            Dinos
+                        </a>
+                        <ul class="dropdown-menu" style="max-height: 400px; overflow-y: scroll"
+                            <input @bind="DinoFilter" class="form-control" @bind:event="oninput">
+                            @foreach (var dino in ArkData.creatures.Where(c => ShowDinos.Contains(c.name)).DistinctBy(d => d.name).OrderBy(d => d.name))
+                            {
+                                <li><button class="dropdown-item active" @onclick="() => ToggleDino(dino.name)">@dino.name</button></li>
+                            }
+
+                            @foreach (var dino in ArkData.creatures.Where(c => !ShowDinos.Contains(c.name) && (string.IsNullOrEmpty(DinoFilter) || c.name.ToLower().Contains(DinoFilter.ToLower()))).DistinctBy(d => d.name).OrderBy(d => d.name))
+                            {
+                                <li><button class="dropdown-item" @onclick="() => ToggleDino(dino.name)">@dino.name</button></li>
+                            }
+                        </ul>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link @(ShowTames ? "bg-primary" : "")" @onclick="ToggleTame">Tames</a>
+                    </li>
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                            @Path.GetFileNameWithoutExtension(Savegame)
+                        </a>
+                        <ul class="dropdown-menu">
+                            @foreach (var file in Savegames)
+                            {
+                                <li><button class="dropdown-item" @onclick="async () => await LoadFile(file)">@Path.GetFileName(file)</button></li>
+                            }
+                        </ul>
+                    </li>
+                </ul>
+                <input type="number" @bind="zoom" min="0.1" max="10" step="0.1" @bind:event="oninput" />
+            </div>
+        </div>
+    </nav>
+    <div style="overflow: scroll; width: 100%; height: 100%; margin-top: 60px;">
+        <div style="position: relative; height: 1000px; width: 1000px; background-image: url('/map_Fjordur.jpg'); background-repeat: no-repeat; zoom: @zoom">
+            @foreach(var tame in Filtered)
+            {
+                <div style="position: absolute; z-index: @(tame==SelectedObject ? 10 : 0); background-color: @(tame == SelectedObject ? "red" : "default"); outline: @(2 / zoom)px solid darkred; height: @(10 / zoom)px; width: @(10 / zoom)px; left: @(GetX(tame.Location.X)*mapCalibration.PixelScaleX-5-mapCalibration.PixelOffsetX)px; top: @(GetY(tame.Location.Y)*mapCalibration.PixelScaleY-5-mapCalibration.PixelOffsetY)px; font-size: @(10 / zoom)px; white-space: nowrap" title="@DisplayStr(tame)" @onclick="() => SelectedObject = tame"></div>
+            }
+        </div>
+    </div>
+    <div style="position: absolute; top: 70px; left: 20px; max-height: 200px; width: 300px;">
+        <div class="bg-dark" @onclick="() => showList = !showList">Positions (@Filtered.Count())</div>
+        <ul class="list-group list-group-flush" style="max-height: 200px; overflow-y: scroll; display: @(showList ? "block" : "none")">
+            @foreach(var item in Filtered.OrderByDescending(i => i.GetFullLevel()))
+            {
+                <li class="list-group-item list-group-item-action fs-6 py-0 px-2 @(SelectedObject == item ? "active" : "")" @onclick="() => SelectedObject = item">
+                    <span>@DisplayStr(item)</span>
+                    <span>@(item.IsFemale() ? "♀️" : "♂️")</span>
+                    <span>@item.GetFullLevel() / @item.GetBaseLevel()</span>
+                    <span title="@item.Location.Z" class="float-end">@Math.Round(GetY(item.Location.Y), 1), @Math.Round(GetX(item.Location.X), 1)</span>
+                </li>
+            }
+        </ul>
+    </div>
+</div>
+
+
+@code
+{
+    MapCalibration mapCalibration { get; set; } = null!;
+
+    List<string> Savegames = new();
+    List<GameObject> Tames = new();
+    List<GameObject> Materials = new();
+    List<GameObject> Dinos = new();
+
+    List<GameObject> Filtered = new();
+
+    GameObject? SelectedObject = null;
+
+
+    float zoom = 1;
+    string Savegame = string.Empty;
+    bool showList = true;
+    string DinoFilter = string.Empty;
+
+    bool ShowTames = false;
+    List<string> ShowDinos = new();
+
+
+    protected override void OnParametersSet()
+    {
+        Console.WriteLine("Parameter set!");
+        base.OnParametersSet();
+    }
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        mapCalibration = MapCalibrations.Calibrations["Fjordur"];
+        Savegames = Directory.GetFiles(Configuration["ArkPath"]!)
+            .Where(f => Path.GetExtension(f).ToLower() == ".ark")
+            .OrderBy(f => File.GetLastWriteTime(f))
+            .ToList();
+        await LoadFile(Savegames.Last());
+
+        await base.OnInitializedAsync();
+    }
+
+    private async Task LoadFile(string fileName)
+    {
+        Console.WriteLine("Loading " + fileName);
+        var arkSavegame = new ArkSavegame();
+
+        using (var stream = new MemoryStream(File.ReadAllBytes(fileName)))
+        using (var archive = new ArkArchive(stream))
+        {
+            arkSavegame.ReadBinary(archive, ReadingOptions.Create()
+                    .WithDataFiles(false)
+                    .WithEmbeddedData(false)
+                    .WithDataFilesObjectMap(false)
+                    .WithObjectFilter(o => !o.IsItem && (o.Parent != null || o.Components.Any()))
+                    .WithBuildComponentTree(true));
+        }
+
+        //TODO: union arkSavegame.HibernationEntries & arkSavegame.Objects
+        var objects = new GameObjectContainer(arkSavegame.Objects);
+
+        Tames = objects.Where(o => o.IsCreature() && o.IsTamed()).ToList();
+        Dinos = objects.Where(o => o.IsCreature() && !o.IsTamed()).ToList();
+        Savegame = fileName;
+
+        UpdateFilters();
+
+        await InvokeAsync(StateHasChanged);
+        Console.WriteLine("Done loading " + fileName);
+    }
+
+
+    double GetX(double x)
+    {
+        return mapCalibration.LonOffset + x / mapCalibration.LonDivisor;
+    }
+
+    double GetY(double y)
+    {
+        return mapCalibration.LatOffset + y / mapCalibration.LatDivisor;
+    }
+
+
+    public string DisplayStr(GameObject obj)
+    {
+        if (Tames.Contains(obj))
+            return "🐶" + obj.GetPropertyValue<string>("TamedName");
+        else if(Dinos.Contains(obj))
+        {
+            return "🦖" + ArkData.creatures.FirstOrDefault(c => obj.ClassString.StartsWith(c.blueprint))?.name ?? obj.ClassString;
+        }
+        else
+            return obj.ClassString;
+    }
+
+    public void ToggleTame()
+    {
+        ShowTames = !ShowTames;
+        UpdateFilters();
+    }
+    public void ToggleDino(string name)
+    {
+        if (ShowDinos.Contains(name))
+            ShowDinos.Remove(name);
+        else
+            ShowDinos.Add(name);
+        UpdateFilters();
+    }
+
+
+
+    public void UpdateFilters()
+    {
+        Filtered = new();
+
+        if (ShowTames)
+            Filtered.AddRange(Tames);
+        if(ShowDinos.Count > 0)
+        {
+            var FilteredDinos = ArkData.creatures.Where(c => ShowDinos.Contains(c.name)).ToList();
+
+            Filtered.AddRange(Dinos.Where(d => FilteredDinos.Any(dd => d.ClassString.StartsWith(dd.blueprint))));
+        }
+    }
+
+}
