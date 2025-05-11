@@ -58,6 +58,11 @@
                             }
                         </ul>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" @onclick="ToggleMap">@(mapFilter == 0 ? "⛰️🪤" : (mapFilter == 1 ? "⛰️" : "🪤"))</a>
+                    </li>
+
+
                 </ul>
                 <input type="number" @bind="zoom" min="0.1" max="10" step="0.1" @bind:event="oninput" />
             </div>
@@ -106,6 +111,8 @@
     string Savegame = string.Empty;
     bool showList = true;
     string DinoFilter = string.Empty;
+
+    int mapFilter = 0;
 
     bool ShowTames = false;
     List<string> ShowDinos = new();
@@ -187,6 +194,11 @@
     {
         ShowTames = !ShowTames;
         UpdateFilters();
+    }   
+    public void ToggleMap()
+    {
+        mapFilter = (mapFilter + 1) % 3;
+        UpdateFilters();
     }
     public void ToggleDino(string name)
     {
@@ -203,13 +215,15 @@
     {
         Filtered = new();
 
+        var mf = (GameObject c) => (c.Location.Z < 0 && (mapFilter == 0 || mapFilter == 2)) || (c.Location.Z >= 0 && (mapFilter == 0 || mapFilter == 1));
+
         if (ShowTames)
-            Filtered.AddRange(Tames);
+            Filtered.AddRange(Tames.Where(mf));
         if(ShowDinos.Count > 0)
         {
             var FilteredDinos = ArkData.creatures.Where(c => ShowDinos.Contains(c.name)).ToList();
 
-            Filtered.AddRange(Dinos.Where(d => FilteredDinos.Any(dd => d.ClassString.StartsWith(dd.blueprint))));
+            Filtered.AddRange(Dinos.Where(mf).Where(d => FilteredDinos.Any(dd => d.ClassString.StartsWith(dd.blueprint))));
         }
     }
 
