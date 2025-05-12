@@ -1,6 +1,8 @@
 ﻿@page "/"
 @using SavegameToolkit
 @using SavegameToolkitAdditions
+@using System.Text.Json.Nodes
+@using System.Text.Json
 @inject IConfiguration Configuration
 @inject MapCalibrations MapCalibrations
 @inject ArkDataCollection ArkData
@@ -76,7 +78,7 @@
             }
         </div>
     </div>
-    <div style="position: absolute; top: 70px; left: 20px; max-height: 200px; width: 300px;">
+    <div style="position: absolute; top: 70px; left: 20px; max-height: 200px; min-width: 300px; max-width: 600px">
         <div class="bg-dark" @onclick="() => showList = !showList">Positions (@Filtered.Count())</div>
         <ul class="list-group list-group-flush" style="max-height: 200px; overflow-y: scroll; display: @(showList ? "block" : "none")">
             @foreach(var item in Filtered.OrderByDescending(i => i.GetFullLevel()))
@@ -117,14 +119,6 @@
     bool ShowTames = false;
     List<string> ShowDinos = new();
 
-
-    protected override void OnParametersSet()
-    {
-        Console.WriteLine("Parameter set!");
-        base.OnParametersSet();
-    }
-
-
     protected override async Task OnInitializedAsync()
     {
         mapCalibration = MapCalibrations.Calibrations["Fjordur"];
@@ -142,15 +136,21 @@
         Console.WriteLine("Loading " + fileName);
         var arkSavegame = new ArkSavegame();
 
-        using (var stream = new MemoryStream(File.ReadAllBytes(fileName)))
-        using (var archive = new ArkArchive(stream))
+        try{
+            using (var stream = new MemoryStream(File.ReadAllBytes(fileName)))
+            using (var archive = new ArkArchive(stream))
+            {
+                arkSavegame.ReadBinary(archive, ReadingOptions.Create()
+                        .WithDataFiles(false)
+                        .WithEmbeddedData(false)
+                        .WithDataFilesObjectMap(false)
+                        .WithObjectFilter(o => !o.IsItem && (o.Parent != null || o.Components.Any()))
+                        .WithBuildComponentTree(true));
+            }
+        }catch(Exception ex)
         {
-            arkSavegame.ReadBinary(archive, ReadingOptions.Create()
-                    .WithDataFiles(false)
-                    .WithEmbeddedData(false)
-                    .WithDataFilesObjectMap(false)
-                    .WithObjectFilter(o => !o.IsItem && (o.Parent != null || o.Components.Any()))
-                    .WithBuildComponentTree(true));
+            Console.WriteLine(ex);
+            return;
         }
 
         //TODO: union arkSavegame.HibernationEntries & arkSavegame.Objects
@@ -159,6 +159,18 @@
         Tames = objects.Where(o => o.IsCreature() && o.IsTamed()).ToList();
         Dinos = objects.Where(o => o.IsCreature() && !o.IsTamed()).ToList();
         Savegame = fileName;
+
+        JsonArray array = new JsonArray();
+        foreach(var go in Dinos)
+        {
+            JsonObject o = new JsonObject();
+
+            o["ClassName"] = go.ClassString;
+            array.Add(o);
+
+        }
+        File.WriteAllText("temp.json", JsonSerializer.Serialize(array, new JsonSerializerOptions() {WriteIndented = true }));
+
 
         UpdateFilters();
 
