@@ -22837,6 +22837,12 @@
       "blueprint": "PA_Giga_Character_BP",
       "class": "PA_Giga_Character_BP_C",
       "name": "Giganotosaurus (EVO)"
+    },
+    {
+      "package": "",
+      "blueprint": "Desmodus_Character_BP",
+      "class": "Desmodus_Character_C",
+      "name": "Desmodus"
     }
   ],
   "structures": [
