@@ -30,7 +30,7 @@
                     </li>
 
                     <li class="nav-item dropdown">
-                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">
+                        <a class="nav-link dropdown-toggle" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false" data-bs-auto-close="outside">
                             Dinos
                         </a>
                         <ul class="dropdown-menu" style="max-height: 400px; overflow-y: scroll"
@@ -63,6 +63,9 @@
                     <li class="nav-item">
                         <a class="nav-link" @onclick="ToggleMap">@(mapFilter == 0 ? "⛰️🪤" : (mapFilter == 1 ? "⛰️" : "🪤"))</a>
                     </li>
+                    <li class="nav-item">
+                        <a class="nav-link" @onclick="() => ShowOverlay = !ShowOverlay">@(ShowOverlay ? "📌" : "🗺️")</a>
+                    </li>
 
 
                 </ul>
@@ -71,7 +74,7 @@
         </div>
     </nav>
     <div style="overflow: scroll; width: 100%; height: 100%; margin-top: 60px;">
-        <div style="position: relative; height: 1000px; width: 1000px; background-image: url('/map_Fjordur.jpg'); background-repeat: no-repeat; zoom: @zoom">
+        <div style="position: relative; height: 1000px; width: 1000px; background-image: @(ShowOverlay ? "url('/map_Fjordur_teleport.png'), " : "") url('/map_Fjordur.jpg'); background-repeat: no-repeat; zoom: @zoom">
             @foreach(var tame in Filtered)
             {
                 <div style="position: absolute; z-index: @(tame==SelectedObject ? 10 : 0); background-color: @(tame == SelectedObject ? "red" : "default"); outline: @(2 / zoom)px solid darkred; height: @(10 / zoom)px; width: @(10 / zoom)px; left: @(GetX(tame.Location.X)*mapCalibration.PixelScaleX-5-mapCalibration.PixelOffsetX)px; top: @(GetY(tame.Location.Y)*mapCalibration.PixelScaleY-5-mapCalibration.PixelOffsetY)px; font-size: @(10 / zoom)px; white-space: nowrap" title="@DisplayStr(tame)" @onclick="() => SelectedObject = tame"></div>
@@ -81,10 +84,17 @@
     <div style="position: absolute; top: 70px; left: 20px; max-height: 200px; min-width: 300px; max-width: 600px">
         <div class="bg-dark" @onclick="() => showList = !showList">Positions (@Filtered.Count())</div>
         <ul class="list-group list-group-flush" style="max-height: 200px; overflow-y: scroll; display: @(showList ? "block" : "none")">
-            @foreach(var item in Filtered.OrderByDescending(i => i.GetFullLevel()))
+            @{
+                var ordered = Filtered.OrderByDescending(i => i.GetFullLevel());
+                if (ShowTames && ShowDinos.Count == 0)
+                {
+                    ordered = Filtered.OrderBy(i => i.ClassString).ThenByDescending(i => i.GetFullLevel());
+                }
+            }
+            @foreach(var item in ordered)
             {
                 <li class="list-group-item list-group-item-action fs-6 py-0 px-2 @(SelectedObject == item ? "active" : "")" @onclick="() => SelectedObject = item">
-                    <span>@DisplayStr(item)</span>
+                    <span title="@item.ClassName">@DisplayStr(item)</span>
                     <span>@(item.IsFemale() ? "♀️" : "♂️")</span>
                     <span>@item.GetFullLevel() / @item.GetBaseLevel()</span>
                     <span title="@item.Location.Z" class="float-end">@Math.Round(GetY(item.Location.Y), 1), @Math.Round(GetX(item.Location.X), 1)</span>
@@ -113,6 +123,7 @@
     string Savegame = string.Empty;
     bool showList = true;
     string DinoFilter = string.Empty;
+    bool ShowOverlay = false;
 
     int mapFilter = 0;
 
