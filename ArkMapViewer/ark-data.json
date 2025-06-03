@@ -22843,6 +22843,12 @@
       "blueprint": "Desmodus_Character_BP",
       "class": "Desmodus_Character_C",
       "name": "Desmodus"
+    },
+    {
+      "package": "",
+      "blueprint": "Andrewsarchus_Character_BP",
+      "class": "Andrewsarchus_Character_BP_C",
+      "name": "Andrewsarchus"
     }
   ],
   "structures": [
