@@ -74,7 +74,7 @@
         </div>
     </nav>
     <div style="overflow: scroll; width: 100%; height: 100%; margin-top: 60px;">
-        <div style="position: relative; height: 1000px; width: 1000px; background-image: @(ShowOverlay ? "url('/map_Fjordur_teleport.png'), " : "") url('/map_Fjordur.jpg'); background-repeat: no-repeat; zoom: @zoom">
+        <div style="position: relative; height: 1000px; width: 1000px; background-image: @(ShowOverlay ? "url('/map_Fjordur_teleport.png'), " : "") url('/map_Valguero.jpg'); background-repeat: no-repeat; zoom: @zoom">
             @foreach(var tame in Filtered)
             {
                 <div style="position: absolute; z-index: @(tame==SelectedObject ? 10 : 0); background-color: @(tame == SelectedObject ? "red" : "default"); outline: @(2 / zoom)px solid darkred; height: @(10 / zoom)px; width: @(10 / zoom)px; left: @(GetX(tame.Location.X)*mapCalibration.PixelScaleX-5-mapCalibration.PixelOffsetX)px; top: @(GetY(tame.Location.Y)*mapCalibration.PixelScaleY-5-mapCalibration.PixelOffsetY)px; font-size: @(10 / zoom)px; white-space: nowrap" title="@DisplayStr(tame)" @onclick="() => SelectedObject = tame"></div>
@@ -132,12 +132,13 @@
 
     protected override async Task OnInitializedAsync()
     {
-        mapCalibration = MapCalibrations.Calibrations["Fjordur"];
+        mapCalibration = MapCalibrations.Calibrations["Valguero_P"];
         Savegames = Directory.GetFiles(Configuration["ArkPath"]!)
             .Where(f => Path.GetExtension(f).ToLower() == ".ark")
             .OrderBy(f => File.GetLastWriteTime(f))
             .ToList();
-        await LoadFile(Savegames.Last());
+        if(Savegames.Count > 0)
+            await LoadFile(Savegames.Last());
 
         await base.OnInitializedAsync();
     }
